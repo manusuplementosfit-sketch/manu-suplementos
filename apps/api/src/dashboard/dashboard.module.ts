@@ -3,22 +3,36 @@ import { OrderStatus, PaymentMethod } from '@prisma/client';
 import { AdminGuard } from '../auth/admin.guard';
 import { PrismaService } from '../common/prisma.service';
 import { PENDING_STATUSES } from '../orders/orders.service';
-import { startOfMonthSP, startOfWeekSP, summarizeOrders } from './metrics';
+import { SettingsModule, SettingsService } from '../settings/settings.module';
+import {
+  percentChange,
+  rankProducts,
+  revenueByWeekday,
+  samePointLastMonthSP,
+  startOfMonthSP,
+  startOfWeekSP,
+  summarizeOrders,
+} from './metrics';
 
 @Controller('admin/dashboard')
 @UseGuards(AdminGuard)
 export class DashboardController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly settings: SettingsService,
+  ) {}
 
   @Get()
   async get() {
     const now = new Date();
     const weekStart = startOfWeekSP(now);
     const monthStart = startOfMonthSP(now);
-    const since = weekStart < monthStart ? weekStart : monthStart;
+    // O mês atual é comparado com o mês anterior até o mesmo dia e hora
+    const lastMonthSamePoint = samePointLastMonthSP(now);
+    const lastMonthStart = startOfMonthSP(lastMonthSamePoint);
 
     const finalized = await this.prisma.order.findMany({
-      where: { status: OrderStatus.FINALIZADO, finalizedAt: { gte: since } },
+      where: { status: OrderStatus.FINALIZADO, finalizedAt: { gte: lastMonthStart } },
       select: { finalizedAt: true, items: true },
     });
     const pending = await this.prisma.order.groupBy({
@@ -29,18 +43,45 @@ export class DashboardController {
     const countPending = (filter: (p: (typeof pending)[number]) => boolean) =>
       pending.filter(filter).reduce((sum, p) => sum + p._count, 0);
 
+    const recentOrders = await this.prisma.order.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { code: true, customerName: true, totalCents: true, paymentMethod: true, status: true, createdAt: true },
+    });
+    const settings = await this.settings.get();
+
+    const since = (start: Date, end = now) =>
+      finalized.filter((o) => o.finalizedAt! >= start && o.finalizedAt! < end);
+    const thisMonth = since(monthStart);
+    const month = summarizeOrders(thisMonth);
+    const lastMonthSoFar = summarizeOrders(since(lastMonthStart, lastMonthSamePoint));
+
+    const top = rankProducts(thisMonth.flatMap((o) => o.items), 5);
+    const topImages = await this.prisma.product.findMany({
+      where: { id: { in: top.map((p) => p.productId) } },
+      select: { id: true, imageUrl: true },
+    });
+
     return {
-      week: summarizeOrders(finalized.filter((o) => o.finalizedAt! >= weekStart)),
-      month: summarizeOrders(finalized.filter((o) => o.finalizedAt! >= monthStart)),
+      week: summarizeOrders(since(weekStart)),
+      month,
+      monthRevenueChange: percentChange(month.revenueCents, lastMonthSoFar.revenueCents),
+      monthGoalCents: settings.monthlyGoalCents,
+      weekRevenueByDay: revenueByWeekday(since(weekStart), weekStart),
       pending: {
         total: countPending(() => true),
         pix: countPending((p) => p.paymentMethod === PaymentMethod.PIX),
         cartao: countPending((p) => p.paymentMethod === PaymentMethod.CARTAO),
         awaitingReceipt: countPending((p) => p.status === OrderStatus.AGUARDANDO_COMPROVANTE),
       },
+      recentOrders,
+      topProducts: top.map((p) => ({
+        ...p,
+        imageUrl: topImages.find((i) => i.id === p.productId)?.imageUrl ?? null,
+      })),
     };
   }
 }
 
-@Module({ controllers: [DashboardController] })
+@Module({ imports: [SettingsModule], controllers: [DashboardController] })
 export class DashboardModule {}

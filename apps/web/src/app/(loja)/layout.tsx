@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { CartButton } from "./cart-button";
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
@@ -6,8 +7,8 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
     <>
       <header className="sticky top-0 z-20 bg-ink text-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="font-display text-2xl font-extrabold uppercase tracking-wide">
-            Manu <span className="text-brand">Suplementos</span>
+          <Link href="/" aria-label="Manu Suplementos, página inicial">
+            <BrandLogo suffix="Suplementos" />
           </Link>
           <CartButton />
         </div>

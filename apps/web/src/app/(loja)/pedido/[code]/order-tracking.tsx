@@ -2,6 +2,8 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { useToast } from "@/components/ui/toast";
+import { PageLoader } from "@/components/ui/spinner";
 import { api } from "@/lib/api";
 import { formatBRL, formatDateTime } from "@/lib/format";
 import { STATUS_LABEL, STATUS_STYLE, TrackedOrder } from "@/lib/types";
@@ -27,20 +29,20 @@ function NextStep({ order }: { order: TrackedOrder }) {
 function PixPayment({ order, token, onSent }: { order: TrackedOrder; token: string; onSent: () => void }) {
   const [copied, setCopied] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const toast = useToast();
 
   async function send() {
     if (!file) return;
     setSending(true);
-    setError("");
     const form = new FormData();
     form.append("file", file);
     try {
       await api.post(`/orders/${order.code}/receipt?token=${token}`, form);
+      toast.success("Comprovante enviado! Agora é só aguardar a confirmação da loja.");
       onSent();
     } catch (e) {
-      setError((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setSending(false);
     }
@@ -67,6 +69,7 @@ function PixPayment({ order, token, onSent }: { order: TrackedOrder; token: stri
                   onClick={() => {
                     navigator.clipboard.writeText(order.pix!.payload);
                     setCopied(true);
+                    toast.success("Código Pix copiado. Cole no app do seu banco.");
                   }}
                 >
                   {copied ? "Copiado ✓" : "Copiar"}
@@ -87,7 +90,6 @@ function PixPayment({ order, token, onSent }: { order: TrackedOrder; token: stri
                   {sending ? "Enviando…" : "Enviar comprovante"}
                 </button>
               </div>
-              {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
             </div>
           </div>
         </>
@@ -114,7 +116,7 @@ export function OrderTracking() {
   useEffect(load, [load]);
 
   if (error) return <p className="mx-auto max-w-3xl px-4 py-10 text-red-700">{error}</p>;
-  if (!order) return <p className="mx-auto max-w-3xl px-4 py-10 text-zinc-500">Carregando pedido…</p>;
+  if (!order) return <PageLoader label="Carregando pedido" />;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">

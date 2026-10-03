@@ -26,11 +26,13 @@ enum OrderStatus {
 }
 
 model Admin {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id                    String    @id @default(cuid())
+  name                  String
+  email                 String    @unique
+  passwordHash          String
+  createdAt             DateTime  @default(now())
+  /// Sessões (tokens) emitidas antes desta data deixam de valer
+  passwordChangedAt     DateTime?
 }
 
 model Category {
@@ -100,4 +102,11 @@ model Settings {
   pixMerchantName  String @default("MANU SUPLEMENTOS")
   pixCity          String @default("SAO PAULO")
   deliveryFeeCents Int    @default(0)
+  /// Meta de faturamento do mês, em centavos (null = sem meta)
+  monthlyGoalCents Int?
+  /// Cores da marca (#rrggbb): principal (botões, destaques) e secundária (topo, textos)
+  brandColor       String @default("#96c82d")
+  inkColor         String @default("#02314b")
+  /// Logo da loja (null = mostra o nome em texto)
+  logoUrl          String?
 }

@@ -4,18 +4,21 @@ import { useState } from "react";
 import { formatBRL } from "@/lib/format";
 import { Product, unitPrice } from "@/lib/types";
 import { useCart } from "./cart-context";
+import { useToast } from "./ui/toast";
 import { QuantityInput } from "./quantity-input";
 
 export function ProductCard({ product }: { product: Product }) {
   const cart = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const toast = useToast();
   const price = unitPrice(product);
   const onSale = price < product.priceCents;
   const soldOut = product.stock === 0;
 
   function add() {
     cart.add(product, quantity);
+    toast.success(quantity > 1 ? `${quantity} unidades de ${product.name} no carrinho` : `${product.name} adicionado ao carrinho`);
     setQuantity(1);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -35,7 +38,7 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-brand">Lançamento</span>
           )}
           {onSale && (
-            <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-ink">
+            <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-on-brand">
               -{Math.round((1 - price / product.priceCents) * 100)}%
             </span>
           )}

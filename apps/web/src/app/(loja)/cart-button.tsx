@@ -12,7 +12,7 @@ export function CartButton() {
     >
       Carrinho
       {count > 0 && (
-        <span className="grid h-6 min-w-6 place-items-center rounded-full bg-brand px-1.5 text-xs font-bold text-ink">{count}</span>
+        <span className="grid h-6 min-w-6 place-items-center rounded-full bg-brand px-1.5 text-xs font-bold text-on-brand">{count}</span>
       )}
     </Link>
   );

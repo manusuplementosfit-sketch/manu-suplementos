@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/cart-context";
+import { Field, PhoneInput, RequiredNote, TextInput } from "@/components/ui/field";
+import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
 import { DeliveryType, PaymentMethod } from "@/lib/types";
@@ -50,6 +52,7 @@ export default function CheckoutPage() {
   const [payment, setPayment] = useState<PaymentMethod>("PIX");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     api
@@ -65,7 +68,6 @@ export default function CheckoutPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     setSending(true);
     try {
       const order = await api.post<{ code: string; accessToken: string }>("/orders", {
@@ -77,9 +79,10 @@ export default function CheckoutPage() {
         items: cart.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       });
       cart.clear();
+      toast.success(`Pedido ${order.code} enviado! Acompanhe tudo por esta página.`);
       router.push(`/pedido/${order.code}?t=${order.accessToken}`);
     } catch (err) {
-      setError((err as Error).message);
+      toast.error((err as Error).message);
       setSending(false);
     }
   }
@@ -100,21 +103,12 @@ export default function CheckoutPage() {
 
         <fieldset className="flex flex-col gap-3">
           <legend className="mb-3 font-display text-xl font-bold uppercase">Seus dados</legend>
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Nome
-            <input className="input" required minLength={3} value={name} onChange={(e) => setName(e.target.value)} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Telefone / WhatsApp
-            <input
-              className="input"
-              required
-              type="tel"
-              placeholder="(11) 99999-9999"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </label>
+          <Field label="Nome" required>
+            <TextInput required minLength={3} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label="Telefone / WhatsApp" required>
+            <PhoneInput required minLength={14} value={phone} onValueChange={setPhone} />
+          </Field>
         </fieldset>
 
         <fieldset>
@@ -130,8 +124,7 @@ export default function CheckoutPage() {
             />
           </div>
           {delivery === "ENTREGA" && (
-            <label className="mt-3 flex flex-col gap-1 text-sm font-medium">
-              Endereço completo
+            <Field label="Endereço completo" required className="mt-3">
               <textarea
                 className="input h-auto min-h-20 py-2"
                 required
@@ -140,7 +133,7 @@ export default function CheckoutPage() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
-            </label>
+            </Field>
           )}
         </fieldset>
 
@@ -193,6 +186,7 @@ export default function CheckoutPage() {
           </div>
         </div>
         {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+        <RequiredNote className="mt-4" />
         <button type="submit" disabled={sending || !settings} className="btn-primary mt-4 w-full">
           {sending ? "Enviando…" : "Confirmar pedido"}
         </button>

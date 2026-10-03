@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SectionLoader } from "@/components/ui/spinner";
 import { ProductCard } from "@/components/product-card";
 import { api } from "@/lib/api";
 import { Category, Product } from "@/lib/types";
@@ -42,17 +43,17 @@ export default function HomePage() {
     <>
       <section className="bg-ink text-white">
         <div className="mx-auto max-w-6xl px-4 pb-14 pt-10 sm:pt-16">
-          <p className="font-display text-lg font-semibold uppercase tracking-widest text-brand">Seu treino, abastecido</p>
-          <h1 className="mt-2 max-w-2xl font-display text-5xl font-extrabold uppercase leading-[0.95] sm:text-7xl">
-            Suplementos que entregam resultado
+          <p className="font-display text-lg font-semibold uppercase tracking-widest text-brand">Emagrecimento com saúde</p>
+          <h1 className="mt-2 max-w-3xl text-balance font-display text-5xl font-extrabold uppercase leading-[0.95] sm:text-7xl">
+            Mais leveza e disposição para o seu dia
           </h1>
           <p className="mt-4 max-w-xl text-zinc-300">
-            Escolha seus produtos, pague com Pix ou cartão e receba em casa ou retire na loja.
+            Cada pequena escolha conta. Comece hoje e descubra a força que existe em cuidar de você.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a href="#promocoes" className="btn-primary">Ver promoções</a>
             <a href="#produtos" className="inline-flex h-11 items-center rounded-lg border border-white/30 px-5 font-semibold hover:bg-white/10">
-              Todos os produtos
+              Ver todos os produtos
             </a>
           </div>
         </div>
@@ -60,7 +61,7 @@ export default function HomePage() {
 
       <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-10">
         {error && <p className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
-        {!products && !error && <p className="text-zinc-500">Carregando produtos…</p>}
+        {!products && !error && <SectionLoader label="Carregando produtos" />}
 
         <Section id="lancamentos" title="Lançamentos" products={launches} />
         <Section id="promocoes" title="Promoções" products={promos} />

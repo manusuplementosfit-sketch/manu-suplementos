@@ -6,8 +6,22 @@
   --color-paper: #f4f7f9;
   --color-brand: #96c82d;
   --color-brand-dark: #548431;
+  /* Texto sobre a cor principal; o tema troca para branco quando a principal é escura */
+  --color-on-brand: #02314b;
   --font-sans: var(--font-inter);
   --font-display: var(--font-barlow);
+  --animate-toast-in: toast-in 0.25s ease-out;
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
 
 body {
@@ -15,18 +29,25 @@ body {
   color: var(--color-ink);
 }
 
-.input {
-  @apply h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 outline-none transition focus:border-ink focus:ring-2 focus:ring-brand;
-}
+/* Em @layer components, para que utilitários (w-40, h-11…) possam ajustar estas classes */
+@layer components {
+  .input {
+    @apply h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 outline-none transition focus:border-ink focus:ring-2 focus:ring-brand;
+  }
 
-.btn-primary {
-  @apply inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 font-semibold text-ink transition hover:bg-brand-dark hover:text-white disabled:opacity-50;
-}
+  .btn-primary {
+    @apply inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 font-semibold text-on-brand transition hover:bg-brand-dark hover:text-white disabled:opacity-50;
+  }
 
-.btn-dark {
-  @apply inline-flex h-11 items-center justify-center rounded-lg bg-ink px-5 font-semibold text-white transition hover:bg-ink-dark disabled:opacity-50;
-}
+  .btn-dark {
+    @apply inline-flex h-11 items-center justify-center rounded-lg bg-ink px-5 font-semibold text-white transition hover:bg-ink-dark disabled:opacity-50;
+  }
 
-.btn-ghost {
-  @apply inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 text-sm font-medium transition hover:bg-zinc-100 disabled:opacity-50;
+  .btn-danger {
+    @apply inline-flex h-11 items-center justify-center rounded-lg bg-red-600 px-5 font-semibold text-white transition hover:bg-red-700 disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 text-sm font-medium transition hover:bg-zinc-100 disabled:opacity-50;
+  }
 }
