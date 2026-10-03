@@ -15,6 +15,9 @@ const NAV = [
 
 const SETTINGS_HREF = "/admin/configuracoes";
 
+// Na Vercel aponta para o link da loja; no computador, sem a variável, é a própria raiz
+const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL ?? "/";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -56,14 +59,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <nav className="hidden items-center gap-1 md:flex">{nav}</nav>
           <div className="ml-auto flex items-center gap-1">
-            <Link
-              href="/"
+            {/* Endereço completo da loja: no link do painel, "/" voltaria para o dashboard */}
+            <a
+              href={STORE_URL}
               aria-label="Ver loja"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
             >
               <Store size={16} />
               <span className="hidden sm:inline">Ver loja</span>
-            </Link>
+            </a>
             <Link
               href={SETTINGS_HREF}
               aria-label="Configurações"
