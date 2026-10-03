@@ -2,6 +2,21 @@
 
 Loja de suplementos com visão do cliente e painel do vendedor.
 
+## Links
+
+| | Endereço |
+|---|---|
+| 🛒 **Loja** (clientes) | https://manu-suplementos.vercel.app |
+| 📊 **Painel** (vendedor) | https://manu-suplementos-painel.vercel.app |
+| ⚙️ API | https://manu-suplementos-api.vercel.app |
+
+Loja e painel são o mesmo site (`apps/web`), cada um no seu endereço: o `src/proxy.ts` leva
+`/admin` aberto no link da loja para o link do painel, e o contrário. Os endereços vêm das
+variáveis `STORE_HOST` e `PANEL_HOST` do projeto na Vercel; no computador, sem elas, o painel
+continua em `localhost:3000/admin`.
+
+## Projeto
+
 - `apps/web`: Next.js (loja + painel em `/admin`)
 - `apps/api`: NestJS + Prisma + PostgreSQL
 
