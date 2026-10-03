@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum PaymentMethod {
+  PIX
+  CARTAO
+}
+
+enum DeliveryType {
+  ENTREGA
+  RETIRADA
+}
+
+enum OrderStatus {
+  AGUARDANDO_COMPROVANTE
+  AGUARDANDO_CONFIRMACAO
+  FINALIZADO
+  CANCELADO
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  name            String
+  description     String      @default("")
+  imageUrl        String?
+  categoryId      String?
+  category        Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  /// Valores monetários sempre em centavos
+  priceCents      Int
+  costCents       Int
+  promoPriceCents Int?
+  isLaunch        Boolean     @default(false)
+  stock           Int         @default(0)
+  active          Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  orderItems      OrderItem[]
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  code             String        @unique
+  accessToken      String
+  customerName     String
+  customerPhone    String
+  deliveryType     DeliveryType
+  address          String?
+  paymentMethod    PaymentMethod
+  status           OrderStatus
+  subtotalCents    Int
+  deliveryFeeCents Int
+  totalCents       Int
+  receiptUrl       String?
+  createdAt        DateTime      @default(now())
+  finalizedAt      DateTime?
+  canceledAt       DateTime?
+  items            OrderItem[]
+
+  @@index([status])
+  @@index([finalizedAt])
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product @relation(fields: [productId], references: [id])
+  /// Nome, preço e custo copiados no momento da compra
+  productName    String
+  unitPriceCents Int
+  unitCostCents  Int
+  quantity       Int
+}
+
+model Settings {
+  id               Int    @id @default(1)
+  pixKey           String @default("")
+  pixMerchantName  String @default("MANU SUPLEMENTOS")
+  pixCity          String @default("SAO PAULO")
+  deliveryFeeCents Int    @default(0)
+}

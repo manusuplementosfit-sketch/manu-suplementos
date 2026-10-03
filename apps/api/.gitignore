@@ -1,0 +1,14 @@
+node_modules
+dist
+uploads
+.env
+*.tsbuildinfo
+
+.vercel
+.env*
+!.env.example
+
+# Skills de IA instaladas pela Vercel CLI (não fazem parte do projeto)
+.agents
+.claude
+skills-lock.json

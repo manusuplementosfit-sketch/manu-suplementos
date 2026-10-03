@@ -1,0 +1,13 @@
+{
+  "name": "manu-suplementos",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm --prefix apps/api install && npm --prefix apps/web install",
+    "dev": "concurrently -n api,web -c blue,green \"npm --prefix apps/api run dev\" \"npm --prefix apps/web run dev\"",
+    "test": "npm --prefix apps/api test",
+    "build": "npm --prefix apps/api run build && npm --prefix apps/web run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}

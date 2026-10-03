@@ -1,0 +1,16 @@
+# Opcional: banco local para desenvolver sem internet.
+# Se usar, aponte DATABASE_URL e DATABASE_URL_UNPOOLED em apps/api/.env para:
+# postgresql://manu:manu@localhost:5433/manu_suplementos
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: manu
+      POSTGRES_PASSWORD: manu
+      POSTGRES_DB: manu_suplementos
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
