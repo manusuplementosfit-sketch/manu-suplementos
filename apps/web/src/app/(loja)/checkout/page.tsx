@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/cart-context";
-import { Field, PhoneInput, RequiredNote, TextInput } from "@/components/ui/field";
+import { Field, MoneyInput, PhoneInput, RequiredNote, TextInput } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, parseBRL } from "@/lib/format";
 import { DeliveryType, PaymentMethod } from "@/lib/types";
 
 function Choice<T extends string>({
@@ -50,6 +50,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState("");
   const [delivery, setDelivery] = useState<DeliveryType>("RETIRADA");
   const [payment, setPayment] = useState<PaymentMethod>("PIX");
+  const [changeFor, setChangeFor] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const toast = useToast();
@@ -68,6 +69,11 @@ export default function CheckoutPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Troco: opcional, só no dinheiro, e maior que o total
+    const changeForCents = payment === "DINHEIRO" && changeFor.trim() !== "" ? parseBRL(changeFor) : null;
+    if (changeForCents != null && changeForCents <= cart.subtotalCents + fee) {
+      return toast.error("O valor para troco precisa ser maior que o total do pedido");
+    }
     setSending(true);
     try {
       const order = await api.post<{ code: string; accessToken: string }>("/orders", {
@@ -76,6 +82,7 @@ export default function CheckoutPage() {
         deliveryType: delivery,
         address: delivery === "ENTREGA" ? address : undefined,
         paymentMethod: payment,
+        changeForCents,
         items: cart.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       });
       cart.clear();
@@ -139,7 +146,7 @@ export default function CheckoutPage() {
 
         <fieldset>
           <legend className="mb-3 font-display text-xl font-bold uppercase">Pagamento</legend>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <Choice
               value="PIX"
               current={payment}
@@ -155,7 +162,23 @@ export default function CheckoutPage() {
               title="Cartão"
               hint={delivery === "ENTREGA" ? "Na maquininha, na entrega" : "Na maquininha, na retirada"}
             />
+            <Choice
+              value="DINHEIRO"
+              current={payment}
+              onSelect={setPayment}
+              title="Dinheiro"
+              hint={delivery === "ENTREGA" ? "Em espécie, na entrega" : "Em espécie, na retirada"}
+            />
           </div>
+          {payment === "DINHEIRO" && (
+            <Field
+              label="Precisa de troco? Para quanto?"
+              className="mt-3"
+              hint={`Deixe em branco se for pagar o valor exato (${formatBRL(cart.subtotalCents + fee)}).`}
+            >
+              <MoneyInput placeholder="R$ 100,00" value={changeFor} onValueChange={setChangeFor} />
+            </Field>
+          )}
         </fieldset>
       </div>
 

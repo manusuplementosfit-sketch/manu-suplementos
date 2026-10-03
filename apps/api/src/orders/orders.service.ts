@@ -12,6 +12,7 @@ import { StorageService } from '../common/storage.service';
 import { buildPixPayload } from '../pix/pix';
 import { SettingsService } from '../settings/settings.module';
 import { AdminOrdersQuery, CreateOrderDto } from './orders.dto';
+import { changeProblem } from './change';
 import { OrderPricingError, priceOrder } from './pricing';
 
 export const PENDING_STATUSES: OrderStatus[] = [
@@ -54,6 +55,8 @@ export class OrdersService {
       if (e instanceof OrderPricingError) throw new BadRequestException(e.message);
       throw e;
     }
+    const changeError = changeProblem(dto.paymentMethod, dto.changeForCents, priced.totalCents);
+    if (changeError) throw new BadRequestException(changeError);
 
     const data = {
       accessToken: randomBytes(16).toString('hex'),
@@ -62,6 +65,7 @@ export class OrdersService {
       deliveryType: dto.deliveryType,
       address: dto.deliveryType === DeliveryType.ENTREGA ? dto.address?.trim() : null,
       paymentMethod: dto.paymentMethod,
+      changeForCents: dto.paymentMethod === PaymentMethod.DINHEIRO ? (dto.changeForCents ?? null) : null,
       status:
         dto.paymentMethod === PaymentMethod.PIX
           ? OrderStatus.AGUARDANDO_COMPROVANTE

@@ -15,7 +15,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t border-zinc-200 py-8 text-center text-sm text-zinc-500">
-        Manu Suplementos · Entrega ou retirada · Pix e cartão
+        Manu Suplementos · Entrega ou retirada · Pix, cartão e dinheiro
       </footer>
     </>
   );

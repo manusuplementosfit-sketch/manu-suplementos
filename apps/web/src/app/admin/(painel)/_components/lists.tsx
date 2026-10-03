@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCard, Package, QrCode } from "lucide-react";
+import { Banknote, CreditCard, Package, QrCode } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { Card, IconBubble } from "@/components/ui/card";
@@ -24,7 +24,9 @@ export function RecentOrders({ orders }: { orders: DashboardOrder[] }) {
         <ul className="flex flex-col gap-4">
           {orders.map((o) => (
             <li key={o.code} className="flex items-center gap-3">
-              <IconBubble>{o.paymentMethod === "PIX" ? <QrCode size={18} /> : <CreditCard size={18} />}</IconBubble>
+              <IconBubble>
+                {o.paymentMethod === "PIX" ? <QrCode size={18} /> : o.paymentMethod === "DINHEIRO" ? <Banknote size={18} /> : <CreditCard size={18} />}
+              </IconBubble>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{o.customerName}</p>
                 <p className="text-xs text-zinc-500">

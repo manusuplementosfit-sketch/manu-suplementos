@@ -41,6 +41,12 @@ export class CreateOrderDto {
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
 
+  /** Dinheiro: "troco para quanto?", em centavos (opcional) */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  changeForCents?: number | null;
+
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
   @ArrayMinSize(1, { message: 'O carrinho está vazio' })

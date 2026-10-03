@@ -31,7 +31,7 @@ export interface Dashboard {
   monthGoalCents: number | null;
   /** Faturamento de segunda (0) a domingo (6) */
   weekRevenueByDay: number[];
-  pending: { total: number; pix: number; cartao: number; awaitingReceipt: number };
+  pending: { total: number; pix: number; cartao: number; dinheiro: number; awaitingReceipt: number };
   recentOrders: DashboardOrder[];
   topProducts: TopProduct[];
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CreditCard, FileText, MapPin, QrCode, Store } from "lucide-react";
+import { Banknote, CreditCard, FileText, MapPin, QrCode, Store } from "lucide-react";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { IconBubble } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { adminApi } from "@/lib/api";
 import { formatBRL, formatDateTime } from "@/lib/format";
-import { Order } from "@/lib/types";
+import { Order, PAYMENT_LABEL } from "@/lib/types";
 
 const isPending = (o: Order) => o.status === "AGUARDANDO_COMPROVANTE" || o.status === "AGUARDANDO_CONFIRMACAO";
 
@@ -18,6 +18,7 @@ const isPending = (o: Order) => o.status === "AGUARDANDO_COMPROVANTE" || o.statu
 const FILTERS: { value: string; label: string; match: (o: Order) => boolean }[] = [
   { value: "pix", label: "Pix", match: (o) => o.paymentMethod === "PIX" && isPending(o) },
   { value: "cartao", label: "Cartão", match: (o) => o.paymentMethod === "CARTAO" && isPending(o) },
+  { value: "dinheiro", label: "Dinheiro", match: (o) => o.paymentMethod === "DINHEIRO" && isPending(o) },
   { value: "aprovados", label: "Aprovados", match: (o) => o.status === "FINALIZADO" },
   { value: "cancelados", label: "Cancelados", match: (o) => o.status === "CANCELADO" },
   { value: "todos", label: "Todos", match: () => true },
@@ -26,6 +27,7 @@ const FILTERS: { value: string; label: string; match: (o: Order) => boolean }[] 
 const EMPTY: Record<string, string> = {
   pix: "Nenhum pedido no Pix esperando aprovação.",
   cartao: "Nenhum pedido no cartão esperando aprovação.",
+  dinheiro: "Nenhum pedido em dinheiro esperando aprovação.",
   aprovados: "Nenhum pedido aprovado ainda.",
   cancelados: "Nenhum pedido cancelado.",
   todos: "Nenhum pedido feito na loja ainda.",
@@ -73,7 +75,9 @@ function OrderRow({ order, onChange }: { order: Order; onChange: () => void }) {
       <header className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-zinc-100 px-4 py-4 sm:px-6">
         {/* No celular o ícone some: a forma de pagamento já aparece escrita ao lado */}
         <span className="hidden sm:block">
-          <IconBubble>{isPix ? <QrCode size={18} /> : <CreditCard size={18} />}</IconBubble>
+          <IconBubble>
+            {isPix ? <QrCode size={18} /> : order.paymentMethod === "DINHEIRO" ? <Banknote size={18} /> : <CreditCard size={18} />}
+          </IconBubble>
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -81,7 +85,7 @@ function OrderRow({ order, onChange }: { order: Order; onChange: () => void }) {
             <OrderStatusBadge status={order.status} />
           </div>
           <p className="mt-1 text-sm text-zinc-500">
-            {isPix ? "Pix" : "Cartão"}, {formatDateTime(order.createdAt)}
+            {PAYMENT_LABEL[order.paymentMethod]}, {formatDateTime(order.createdAt)}
           </p>
         </div>
         <div className="flex w-full items-baseline justify-between sm:block sm:w-auto sm:text-right">
@@ -141,7 +145,13 @@ function OrderRow({ order, onChange }: { order: Order; onChange: () => void }) {
       {pending && (
         <footer className="flex flex-col gap-3 border-t border-zinc-100 bg-paper/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="text-sm">
-            {!isPix ? (
+            {order.paymentMethod === "DINHEIRO" ? (
+              <p className="text-zinc-500">
+                {order.changeForCents
+                  ? `Troco para ${formatBRL(order.changeForCents)}: levar ${formatBRL(order.changeForCents - order.totalCents)} de troco.`
+                  : "Receba em dinheiro (sem troco) e aprove o pedido."}
+              </p>
+            ) : !isPix ? (
               <p className="text-zinc-500">Receba na maquininha e aprove o pedido.</p>
             ) : order.receiptUrl ? (
               <ButtonLink href={order.receiptUrl} target="_blank" rel="noreferrer" variant="ghost" className="w-full gap-2 sm:w-auto">

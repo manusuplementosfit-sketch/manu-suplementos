@@ -11,6 +11,7 @@ datasource db {
 enum PaymentMethod {
   PIX
   CARTAO
+  DINHEIRO
 }
 
 enum DeliveryType {
@@ -74,6 +75,8 @@ model Order {
   deliveryFeeCents Int
   totalCents       Int
   receiptUrl       String?
+  /// Dinheiro: "troco para quanto?" (null = sem troco)
+  changeForCents   Int?
   createdAt        DateTime      @default(now())
   finalizedAt      DateTime?
   canceledAt       DateTime?

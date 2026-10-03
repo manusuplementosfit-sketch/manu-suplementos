@@ -2,11 +2,22 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useToast } from "@/components/ui/toast";
+import { Check, Copy, FileUp } from "lucide-react";
+import { Badge, BadgeTone } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/spinner";
+import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { formatBRL, formatDateTime } from "@/lib/format";
-import { STATUS_LABEL, STATUS_STYLE, TrackedOrder } from "@/lib/types";
+import { OrderStatus, PAYMENT_LABEL, STATUS_LABEL, TrackedOrder } from "@/lib/types";
+
+// Selo do status nas cores da loja (a página do cliente usa os nomes completos)
+const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
+  AGUARDANDO_COMPROVANTE: "attention",
+  AGUARDANDO_CONFIRMACAO: "subtle",
+  FINALIZADO: "positive",
+  CANCELADO: "neutral",
+};
 
 function NextStep({ order }: { order: TrackedOrder }) {
   const place = order.deliveryType === "ENTREGA" ? "na entrega" : "na retirada";
@@ -14,11 +25,16 @@ function NextStep({ order }: { order: TrackedOrder }) {
     case "AGUARDANDO_COMPROVANTE":
       return <>Pague o Pix abaixo e envie o comprovante para confirmarmos seu pedido.</>;
     case "AGUARDANDO_CONFIRMACAO":
-      return order.paymentMethod === "PIX" ? (
-        <>Recebemos seu comprovante! Agora é só aguardar a confirmação da loja.</>
-      ) : (
-        <>Pedido recebido! O pagamento será feito no cartão, na maquininha, {place}.</>
-      );
+      if (order.paymentMethod === "PIX") return <>Recebemos seu comprovante! Agora é só aguardar a confirmação da loja.</>;
+      if (order.paymentMethod === "DINHEIRO") {
+        return (
+          <>
+            Pedido recebido! O pagamento será em dinheiro, {place}
+            {order.changeForCents ? `. Vamos levar troco para ${formatBRL(order.changeForCents)}.` : "."}
+          </>
+        );
+      }
+      return <>Pedido recebido! O pagamento será feito no cartão, na maquininha, {place}.</>;
     case "FINALIZADO":
       return <>Compra confirmada. Obrigado por comprar com a gente! 💪</>;
     case "CANCELADO":
@@ -48,54 +64,72 @@ function PixPayment({ order, token, onSent }: { order: TrackedOrder; token: stri
     }
   }
 
+  if (!order.pix) {
+    return (
+      <section className="rounded-2xl bg-white p-4 text-zinc-600 ring-1 ring-zinc-200 sm:p-6">
+        O Pix da loja não está configurado. Fale com a loja para combinar o pagamento.
+      </section>
+    );
+  }
+
+  const pix = order.pix;
   return (
-    <section className="grid gap-6 rounded-2xl bg-white p-6 ring-1 ring-zinc-200 sm:grid-cols-[220px_1fr]">
-      {order.pix ? (
-        <>
-          <div className="flex flex-col items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={order.pix.qrCodeDataUrl} alt="QR Code Pix" className="h-52 w-52" />
-            <p className="font-display text-2xl font-bold">{formatBRL(order.totalCents)}</p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="font-display text-xl font-bold uppercase">1. Pague com Pix</h2>
-              <p className="text-sm text-zinc-600">Escaneie o QR Code ou copie o código abaixo no app do seu banco.</p>
-              <div className="mt-2 flex gap-2">
-                <input readOnly value={order.pix.payload} className="input font-mono text-xs" onFocus={(e) => e.target.select()} />
-                <button
-                  type="button"
-                  className="btn-dark shrink-0"
-                  onClick={() => {
-                    navigator.clipboard.writeText(order.pix!.payload);
-                    setCopied(true);
-                    toast.success("Código Pix copiado. Cole no app do seu banco.");
-                  }}
-                >
-                  {copied ? "Copiado ✓" : "Copiar"}
-                </button>
-              </div>
-            </div>
-            <div>
-              <h2 className="font-display text-xl font-bold uppercase">2. Envie o comprovante</h2>
-              <p className="text-sm text-zinc-600">Foto ou PDF, até 4 MB.</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:font-medium"
-                />
-                <button type="button" className="btn-primary" disabled={!file || sending} onClick={send}>
-                  {sending ? "Enviando…" : "Enviar comprovante"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <p className="text-zinc-600 sm:col-span-2">O Pix da loja não está configurado. Fale com a loja para combinar o pagamento.</p>
-      )}
+    <section className="flex flex-col gap-6 rounded-2xl bg-white p-4 ring-1 ring-zinc-200 sm:grid sm:grid-cols-[220px_minmax(0,1fr)] sm:p-6">
+      {/* QR Code e valor */}
+      <div className="flex flex-col items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={pix.qrCodeDataUrl} alt="QR Code Pix" className="h-48 w-48 sm:h-52 sm:w-52" />
+        <p className="text-sm text-zinc-500">Valor a pagar</p>
+        <p className="-mt-1 font-display text-3xl font-bold">{formatBRL(order.totalCents)}</p>
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <h2 className="font-display text-xl font-bold uppercase">1. Pague com Pix</h2>
+          <p className="text-sm text-zinc-600">
+            No celular, toque em <strong>Copiar código Pix</strong> e cole no app do seu banco (Pix copia e cola). No computador, escaneie
+            o QR Code.
+          </p>
+          <code className="block break-all rounded-lg bg-paper p-3 font-mono text-xs text-zinc-600">{pix.payload}</code>
+          <Button
+            type="button"
+            variant="dark"
+            block
+            className="gap-2"
+            onClick={() => {
+              navigator.clipboard.writeText(pix.payload);
+              setCopied(true);
+              toast.success("Código Pix copiado. Cole no app do seu banco.");
+            }}
+          >
+            {copied ? <Check size={18} /> : <Copy size={18} />}
+            {copied ? "Código copiado" : "Copiar código Pix"}
+          </Button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h2 className="font-display text-xl font-bold uppercase">2. Envie o comprovante</h2>
+          <p className="text-sm text-zinc-600">Depois de pagar, envie a foto ou o PDF do comprovante (até 4 MB).</p>
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-zinc-200 p-3 transition hover:border-ink/30 hover:bg-paper focus-within:border-ink/40 focus-within:ring-2 focus-within:ring-brand">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-paper text-ink">
+              <FileUp size={18} />
+            </span>
+            <span className="min-w-0 text-sm">
+              <span className="block font-semibold">{file ? "Trocar arquivo" : "Escolher comprovante"}</span>
+              <span className="block truncate text-zinc-500">{file ? file.name : "Toque para escolher a foto ou o PDF"}</span>
+            </span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              className="sr-only"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          <Button type="button" block disabled={!file || sending} onClick={send}>
+            {sending ? "Enviando…" : "Enviar comprovante"}
+          </Button>
+        </div>
+      </div>
     </section>
   );
 }
@@ -119,16 +153,14 @@ export function OrderTracking() {
   if (!order) return <PageLoader label="Carregando pedido" />;
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8 sm:py-10">
       <div>
         <p className="text-sm text-zinc-500">Pedido feito em {formatDateTime(order.createdAt)}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-4xl font-bold uppercase">Pedido {order.code}</h1>
-          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${STATUS_STYLE[order.status]}`}>
-            {STATUS_LABEL[order.status]}
-          </span>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="font-display text-3xl font-bold uppercase sm:text-4xl">Pedido {order.code}</h1>
+          <Badge tone={STATUS_TONE[order.status]}>{STATUS_LABEL[order.status]}</Badge>
         </div>
-        <p className="mt-2 text-zinc-700">
+        <p className="mt-3 text-zinc-700">
           <NextStep order={order} />
         </p>
         <p className="mt-2 text-sm text-zinc-500">Guarde o link desta página para acompanhar seu pedido.</p>
@@ -136,15 +168,15 @@ export function OrderTracking() {
 
       {order.status === "AGUARDANDO_COMPROVANTE" && <PixPayment order={order} token={token} onSent={load} />}
 
-      <section className="rounded-2xl bg-white p-6 ring-1 ring-zinc-200">
+      <section className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 sm:p-6">
         <h2 className="mb-3 font-display text-xl font-bold uppercase">Itens</h2>
         <ul className="flex flex-col gap-2 text-sm">
           {order.items.map((i) => (
-            <li key={i.id} className="flex justify-between">
-              <span>
+            <li key={i.id} className="flex justify-between gap-3">
+              <span className="min-w-0">
                 {i.quantity}× {i.productName}
               </span>
-              <span>{formatBRL(i.unitPriceCents * i.quantity)}</span>
+              <span className="shrink-0 tabular-nums">{formatBRL(i.unitPriceCents * i.quantity)}</span>
             </li>
           ))}
         </ul>
@@ -161,9 +193,13 @@ export function OrderTracking() {
         <div className="mt-4 grid gap-1 border-t border-zinc-200 pt-3 text-sm text-zinc-600">
           <p>
             <strong>{order.deliveryType === "ENTREGA" ? "Entrega" : "Retirada na loja"}</strong>
-            {order.address && ` · ${order.address}`}
+            {order.address && `: ${order.address}`}
           </p>
-          <p>Pagamento: {order.paymentMethod === "PIX" ? "Pix" : "Cartão (maquininha)"}</p>
+          <p>
+            Pagamento: {PAYMENT_LABEL[order.paymentMethod]}
+            {order.paymentMethod === "CARTAO" && " (maquininha)"}
+            {order.paymentMethod === "DINHEIRO" && order.changeForCents ? `, troco para ${formatBRL(order.changeForCents)}` : ""}
+          </p>
         </div>
       </section>
     </div>

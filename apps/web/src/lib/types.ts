@@ -1,4 +1,4 @@
-export type PaymentMethod = "PIX" | "CARTAO";
+export type PaymentMethod = "PIX" | "CARTAO" | "DINHEIRO";
 export type DeliveryType = "ENTREGA" | "RETIRADA";
 export type OrderStatus = "AGUARDANDO_COMPROVANTE" | "AGUARDANDO_CONFIRMACAO" | "FINALIZADO" | "CANCELADO";
 
@@ -47,6 +47,8 @@ export interface Order {
   deliveryFeeCents: number;
   totalCents: number;
   receiptUrl: string | null;
+  /** Dinheiro: troco para quanto (null = sem troco) */
+  changeForCents?: number | null;
   createdAt: string;
   finalizedAt: string | null;
   items: OrderItem[];
@@ -63,13 +65,12 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELADO: "Cancelado",
 };
 
-export const STATUS_STYLE: Record<OrderStatus, string> = {
-  AGUARDANDO_COMPROVANTE: "bg-amber-100 text-amber-900",
-  AGUARDANDO_CONFIRMACAO: "bg-sky-100 text-sky-900",
-  FINALIZADO: "bg-emerald-100 text-emerald-900",
-  CANCELADO: "bg-zinc-200 text-zinc-700",
-};
-
 export function unitPrice(p: Pick<Product, "priceCents" | "promoPriceCents">): number {
   return p.promoPriceCents != null && p.promoPriceCents < p.priceCents ? p.promoPriceCents : p.priceCents;
 }
+
+export const PAYMENT_LABEL: Record<PaymentMethod, string> = {
+  PIX: "Pix",
+  CARTAO: "Cartão",
+  DINHEIRO: "Dinheiro",
+};

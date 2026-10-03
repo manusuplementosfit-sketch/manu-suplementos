@@ -90,6 +90,7 @@ export default function DashboardPage() {
               <span className="flex flex-wrap items-center gap-2">
                 <Badge tone="positive">{pending.pix} Pix</Badge>
                 <Badge tone="attention">{pending.cartao} cartão</Badge>
+                {pending.dinheiro > 0 && <Badge tone="subtle">{pending.dinheiro} dinheiro</Badge>}
               </span>
             )
           }

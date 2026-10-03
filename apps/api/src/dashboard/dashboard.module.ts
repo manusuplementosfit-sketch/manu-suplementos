@@ -72,6 +72,7 @@ export class DashboardController {
         total: countPending(() => true),
         pix: countPending((p) => p.paymentMethod === PaymentMethod.PIX),
         cartao: countPending((p) => p.paymentMethod === PaymentMethod.CARTAO),
+        dinheiro: countPending((p) => p.paymentMethod === PaymentMethod.DINHEIRO),
         awaitingReceipt: countPending((p) => p.status === OrderStatus.AGUARDANDO_COMPROVANTE),
       },
       recentOrders,

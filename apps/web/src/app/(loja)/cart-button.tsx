@@ -1,18 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/components/cart-context";
 
 export function CartButton() {
   const { count } = useCart();
+  const label = count === 0 ? "Carrinho vazio" : `Carrinho com ${count} ${count === 1 ? "item" : "itens"}`;
   return (
     <Link
       href="/carrinho"
-      className="relative inline-flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold transition hover:bg-white/20"
+      aria-label={label}
+      title={label}
+      className="relative grid h-11 w-11 place-items-center rounded-full bg-white/10 transition hover:bg-white/20"
     >
-      Carrinho
+      <ShoppingCart size={22} />
       {count > 0 && (
-        <span className="grid h-6 min-w-6 place-items-center rounded-full bg-brand px-1.5 text-xs font-bold text-on-brand">{count}</span>
+        <span
+          aria-hidden
+          className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[11px] font-bold leading-none text-on-brand ring-2 ring-ink"
+        >
+          {count > 99 ? "99+" : count}
+        </span>
       )}
     </Link>
   );
