@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { CartButton } from "./cart-button";
+import { PanelReturnBar } from "./panel-return-bar";
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <PanelReturnBar />
       <header className="sticky top-0 z-20 bg-ink text-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link href="/" aria-label="Manu Suplementos, página inicial">
