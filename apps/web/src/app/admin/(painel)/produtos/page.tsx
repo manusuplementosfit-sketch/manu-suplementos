@@ -71,7 +71,7 @@ function ProductRow({ product: p, onEdit, onRemove }: { product: AdminProduct; o
     <li className={`px-5 py-4 sm:px-6 ${p.active ? "" : "bg-paper/60"}`}>
       <div className={`flex flex-col gap-4 text-sm lg:grid ${COLUMNS}`}>
         <div className="flex min-w-0 items-center gap-3">
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-paper ring-1 ring-zinc-200/80">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-paper ring-1 ring-zinc-200/80">
             {p.imageUrl && <ProductImage src={p.imageUrl} />}
           </div>
           <div className="min-w-0 flex-1">

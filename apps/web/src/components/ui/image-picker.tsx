@@ -62,7 +62,7 @@ export function ImagePicker({
       }`}
     >
       <div
-        className={`grid shrink-0 place-items-center overflow-hidden transition-all duration-300 motion-reduce:transition-none ${box}`}
+        className={`relative grid shrink-0 place-items-center overflow-hidden transition-all duration-300 motion-reduce:transition-none ${box}`}
       >
         {image && !isLogo ? (
           // Mesma moldura da loja, para o admin ver a foto como o cliente vai ver

@@ -61,7 +61,7 @@ export default function CartPage() {
               key={item.productId}
               className="flex gap-3 rounded-2xl bg-white p-3 shadow-[0_1px_2px_rgb(2_49_75/0.04)] ring-1 ring-zinc-200/80 sm:gap-4 sm:p-4"
             >
-              <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-paper sm:h-28 sm:w-28">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-paper sm:h-28 sm:w-28">
                 {item.imageUrl && <ProductImage src={item.imageUrl} />}
               </div>
               <div className="flex min-w-0 flex-1 flex-col py-0.5">

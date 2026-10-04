@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-200 transition hover:shadow-lg">
-      <div className="relative aspect-square bg-zinc-100">
+      <div className="relative aspect-square shrink-0 overflow-hidden bg-zinc-100">
         {product.imageUrl ? (
           <ProductImage src={product.imageUrl} alt={product.name} />
         ) : (
