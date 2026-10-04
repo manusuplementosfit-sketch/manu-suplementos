@@ -5,6 +5,7 @@ import { Product, unitPrice } from "@/lib/types";
 import { useCart } from "./cart-context";
 import { useToast } from "./ui/toast";
 import { QuantityInput } from "./quantity-input";
+import { ProductImage } from "./product-image";
 
 export function ProductCard({ product }: { product: Product }) {
   const cart = useCart();
@@ -30,8 +31,7 @@ export function ProductCard({ product }: { product: Product }) {
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-200 transition hover:shadow-lg">
       <div className="relative aspect-square bg-zinc-100">
         {product.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+          <ProductImage src={product.imageUrl} alt={product.name} />
         ) : (
           <div className="grid h-full place-items-center font-display text-4xl font-bold text-zinc-300">MS</div>
         )}

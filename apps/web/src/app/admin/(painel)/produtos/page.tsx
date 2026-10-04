@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
+import { ProductImage } from "@/components/product-image";
 import { PageLoader } from "@/components/ui/spinner";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
@@ -71,8 +72,7 @@ function ProductRow({ product: p, onEdit, onRemove }: { product: AdminProduct; o
       <div className={`flex flex-col gap-4 text-sm lg:grid ${COLUMNS}`}>
         <div className="flex min-w-0 items-center gap-3">
           <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-paper ring-1 ring-zinc-200/80">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {p.imageUrl && <img src={p.imageUrl} alt="" className="h-full w-full object-cover" />}
+            {p.imageUrl && <ProductImage src={p.imageUrl} />}
           </div>
           <div className="min-w-0 flex-1">
             <p className={`truncate font-semibold ${p.active ? "" : "text-zinc-500"}`}>{p.name}</p>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ImagePlus } from "lucide-react";
+import { ProductImage } from "../product-image";
 
 /**
  * Área para escolher uma imagem: clicar abre o seletor de arquivos, e também dá para
@@ -63,9 +64,12 @@ export function ImagePicker({
       <div
         className={`grid shrink-0 place-items-center overflow-hidden transition-all duration-300 motion-reduce:transition-none ${box}`}
       >
-        {image ? (
+        {image && !isLogo ? (
+          // Mesma moldura da loja, para o admin ver a foto como o cliente vai ver
+          <ProductImage src={image} />
+        ) : image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="" className={isLogo ? "max-h-full max-w-full object-contain" : "h-full w-full object-cover"} />
+          <img src={image} alt="" className="max-h-full max-w-full object-contain" />
         ) : (
           <ImagePlus size={compact ? 22 : 28} className={isLogo ? "text-white/60" : "text-zinc-400"} />
         )}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
 import { useCart } from "@/components/cart-context";
 import { QuantityInput } from "@/components/quantity-input";
+import { ProductImage } from "@/components/product-image";
 import { ButtonLink } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { formatBRL } from "@/lib/format";
@@ -61,10 +62,7 @@ export default function CartPage() {
               className="flex gap-3 rounded-2xl bg-white p-3 shadow-[0_1px_2px_rgb(2_49_75/0.04)] ring-1 ring-zinc-200/80 sm:gap-4 sm:p-4"
             >
               <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-paper sm:h-28 sm:w-28">
-                {item.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
-                )}
+                {item.imageUrl && <ProductImage src={item.imageUrl} />}
               </div>
               <div className="flex min-w-0 flex-1 flex-col py-0.5">
                 {/* Nome com a lixeira discreta no canto */}
